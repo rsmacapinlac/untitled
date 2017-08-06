@@ -156,26 +156,16 @@ void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key)
 {
   uint8_t _key_press = WhatKeyWasPressed(mod, key);
   if (modifier_trap == true) {
-    Serial.print("Modifier + ");
-    Serial.println(_key_press);
-  } else {
-    Keyboard.press(_key_press);  
+    // Modifier execute!
+  } else {  
     Keyboard.release(_key_press);
   }
 }
 
 void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
 {
-
-  /*
-  Serial.print("DN ");
-  PrintKey(mod, key);
-  uint8_t c = OemToAscii(mod, key);
-
-  if (c)
-    OnKeyPressed(c);
-  */
- 
+  uint8_t _key_press = WhatKeyWasPressed(mod, key);
+  Keyboard.press(_key_press);   
 }
 
 USB     Usb;
@@ -186,13 +176,6 @@ KbdRptParser Prs;
 
 void setup()
 {
-  Serial.begin( 115200 );
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-  Serial.println("Start");
-
-
   if (Usb.Init() == -1)
     Serial.println("OSC did not start.");
     
