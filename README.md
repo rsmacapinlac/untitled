@@ -27,8 +27,7 @@ Here is the hardware list that this project is working with:
 
 # Where things are at:
 
-* [ ] Keyboard passthrough (not quite there yet, there is some weird behavior with
-  modifier keys and holding down keys don't work).
+* [x] Keyboard passthrough
 * [x] Trapping predefined key combinations
 * [ ] Storing and reading templates from external storage (can't seem to get the SD
   card shield to work)
