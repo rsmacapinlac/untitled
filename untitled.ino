@@ -2,7 +2,7 @@
 #include <usbhub.h>
 
 #include <Keyboard.h>
-#include <SD.h>
+#include <FileIO.h>
 
 // Satisfy the IDE, which needs to see the include statment in the ino too.
 #ifdef dobogusinclude
@@ -10,15 +10,10 @@
 #include <SPI.h>
 #endif
 
-class KbdPassthrough
-{
-    void pass();
-};
+String template_data[9] = { "", "", "", "", "", "", "", "", "" };
 
 class KbdRptParser : public KeyboardReportParser
 {
-    void PrintKey(uint8_t mod, uint8_t key);
-
   private:
     int modifier_keys[8] = { 0,0,0,0,0,0,0,0 };
     bool modifier_trap = false;
@@ -26,6 +21,8 @@ class KbdRptParser : public KeyboardReportParser
   protected:
     uint8_t KbdRptParser::ControlKeyState(uint8_t before, uint8_t after);
     uint8_t KbdRptParser::WhatKeyWasPressed(uint8_t mod, uint8_t key);
+    String KbdRptParser::GetTemplate(char key);
+    bool KbdRptParser::isTriggered(uint8_t key);
     
     void OnControlKeysChanged(uint8_t before, uint8_t after);
     void UpdateControlKeySwitch(uint8_t modifier_key, uint8_t keyboard_modifier);     
@@ -43,6 +40,7 @@ void KbdRptParser::UpdateControlKeySwitch(uint8_t modifier_key_index, uint8_t ke
     Keyboard.release(keyboard_modifier);
     modifier_keys[modifier_key_index] = 0;
   }
+
 }
 
 void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after) {
@@ -65,7 +63,6 @@ void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after) {
   if (beforeMod.bmLeftGUI != afterMod.bmLeftGUI) {
     UpdateControlKeySwitch(3, KEY_LEFT_GUI);
   }
-
   if (beforeMod.bmRightCtrl != afterMod.bmRightCtrl) {
     UpdateControlKeySwitch(4, KEY_RIGHT_CTRL);
   }
@@ -78,27 +75,12 @@ void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after) {
   if (beforeMod.bmRightGUI != afterMod.bmRightGUI) {
     UpdateControlKeySwitch(7, KEY_RIGHT_GUI);
   }
-
-  if (((modifier_keys[0] == 1) || (modifier_keys[4] == 1)) && ((modifier_keys[2] == 1) || (modifier_keys[6] == 1))) {
-    modifier_trap = true;
-  } else {
-    modifier_trap = false;
-  }
+ 
 }
 
 uint8_t KbdRptParser::WhatKeyWasPressed(uint8_t mod, uint8_t key) {
   uint8_t c = OemToAscii(mod, key);
-  uint8_t key_press = (char)c;
-
-  /*
-  Serial.print(mod);
-  Serial.print(" ");
-  Serial.print(key);
-  Serial.print(" ");
-  Serial.print(c);
-  Serial.print(" ");
-  Serial.println(key_press);
-  */
+  uint8_t key_press = c;
 
   if ((key >= 58) && (key <= 69)) {
     // 194 - 205
@@ -148,38 +130,100 @@ uint8_t KbdRptParser::WhatKeyWasPressed(uint8_t mod, uint8_t key) {
         key_press = KEY_UP_ARROW;
         break;
     }
-  }   
+  }  
   return key_press;
 } 
 
-void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key)
+String KbdRptParser::GetTemplate(char key)
 {
+  String file_path = "/mnt/sda1/TEMPLATES";
+  file_path += "/";
+  file_path += key;
+  file_path += ".TXT";
+  return file_path;
+}
+
+void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key) {
   uint8_t _key_press = WhatKeyWasPressed(mod, key);
-  if (modifier_trap == true) {
-    // Modifier execute!
-  } else {  
-    Keyboard.release(_key_press);
+  bool triggered = isTriggered(_key_press);
+
+  if (triggered) {
+    uint8_t index = int((char)_key_press) - 48;
+    String _data = template_data[index];
+    Keyboard.releaseAll();
+    Keyboard.print(_data);
+  } else {
+    Keyboard.release(_key_press);  
   }
 }
 
-void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
-{
+bool KbdRptParser::isTriggered(uint8_t key_press) {
+  bool _triggered = false;
+  if (((modifier_keys[0] == 1) || (modifier_keys[4])) && ((modifier_keys[2] == 1) || (modifier_keys[6] == 1)) && ((key_press >= 48) && (key_press <= 57))) {
+    _triggered = true;
+  }
+  return _triggered;
+}
+
+void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key) {
   uint8_t _key_press = WhatKeyWasPressed(mod, key);
-  Keyboard.press(_key_press);   
+  bool triggered = isTriggered(_key_press);
+
+  if (triggered) {
+  } else {
+    Keyboard.press(_key_press);
+  }
 }
 
 USB     Usb;
-//USBHub     Hub(&Usb);
 HIDBoot<USB_HID_PROTOCOL_KEYBOARD>    HidKeyboard(&Usb);
 
 KbdRptParser Prs;
 
 void setup()
 {
-  if (Usb.Init() == -1)
-    Serial.println("OSC did not start.");
-    
 
+  
+  if (Usb.Init() == -1) {
+    // SerialUSB.println("OSC did not start.");
+
+  }
+
+  
+
+  // while(!Serial);  // wait for Serial port to connect.
+  // Serial.println("Board ready");
+  
+  Bridge.begin();
+  FileSystem.begin();
+
+
+  File dir = FileSystem.open("/mnt/sda1/TEMPLATES", FILE_READ);
+  while(true) {
+    File entry =  dir.openNextFile();
+    if (!entry) {
+      // no more files
+      break;
+    }
+
+    String _filename = entry.name();
+    _filename.replace(".TXT", "");
+    _filename.replace("/mnt/sda1/TEMPLATES/", "");
+
+    uint8_t template_index = _filename.toInt();
+
+    File _template = FileSystem.open(entry.name(), FILE_READ);
+    while (_template.available()) {
+      template_data[template_index] += (char)_template.read();
+    }
+    // close the file:
+    _template.close();
+    template_data[template_index] = (String)template_data[template_index];
+    template_data[template_index].trim();
+    entry.close();
+  }
+  // SerialUSB.println("Templates have been read in");  
+  
   /*
   Serial.print("Initializing SD card...");
 
