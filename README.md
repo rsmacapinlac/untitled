@@ -22,16 +22,17 @@ stick).
 
 Here is the hardware list that this project is working with:
 
-* Arduino Leonardo
+* Arduino ~~Leonardo~~ Yun
 * USB host shield
 
 # Where things are at:
 
 * [x] Keyboard passthrough
 * [x] Trapping predefined key combinations
-* [ ] Storing and reading templates from external storage (can't seem to get the SD
+* [x] Storing and reading templates from external storage (can't seem to get the SD
   card shield to work)
-* [ ] "typing out" the template on valid key combination
+* [x] "typing out" the template on valid key combination
+* [ ] Dang sketch needs to wait until the system boots before it does anything!
 
 Nice to haves?
 

@@ -143,15 +143,29 @@ String KbdRptParser::GetTemplate(char key)
   return file_path;
 }
 
+String GetPayload(String filename) {
+  File _template = FileSystem.open(filename.c_str(), FILE_READ);
+  String output = "";
+  if (_template) {
+    while (_template.available()) {
+      output += (char)_template.read();
+    }
+    _template.close();
+  }
+  return output;
+}
+
+
 void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key) {
   uint8_t _key_press = WhatKeyWasPressed(mod, key);
   bool triggered = isTriggered(_key_press);
 
   if (triggered) {
-    uint8_t index = int((char)_key_press) - 48;
+    int index = int((char)_key_press) - 48;
     String _data = template_data[index];
     Keyboard.releaseAll();
-    Keyboard.print(_data);
+    String _payload = GetPayload(_data);
+    Keyboard.print(_payload);
   } else {
     Keyboard.release(_key_press);  
   }
@@ -175,29 +189,8 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key) {
   }
 }
 
-USB     Usb;
-HIDBoot<USB_HID_PROTOCOL_KEYBOARD>    HidKeyboard(&Usb);
 
-KbdRptParser Prs;
-
-void setup()
-{
-
-  
-  if (Usb.Init() == -1) {
-    // SerialUSB.println("OSC did not start.");
-
-  }
-
-  
-
-  // while(!Serial);  // wait for Serial port to connect.
-  // Serial.println("Board ready");
-  
-  Bridge.begin();
-  FileSystem.begin();
-
-
+void ReadTemplateFiles() {
   File dir = FileSystem.open("/mnt/sda1/TEMPLATES", FILE_READ);
   while(true) {
     File entry =  dir.openNextFile();
@@ -209,39 +202,30 @@ void setup()
     String _filename = entry.name();
     _filename.replace(".TXT", "");
     _filename.replace("/mnt/sda1/TEMPLATES/", "");
-
-    uint8_t template_index = _filename.toInt();
-
-    File _template = FileSystem.open(entry.name(), FILE_READ);
-    while (_template.available()) {
-      template_data[template_index] += (char)_template.read();
-    }
-    // close the file:
-    _template.close();
-    template_data[template_index] = (String)template_data[template_index];
-    template_data[template_index].trim();
+    int template_index = _filename.toInt();
+    
+    template_data[template_index] = entry.name();
     entry.close();
   }
-  // SerialUSB.println("Templates have been read in");  
-  
-  /*
-  Serial.print("Initializing SD card...");
+}
 
-  // see if the card is present and can be initialized:
-  if (!SD.begin(4)) {
-    Serial.println("Card failed, or not present");
-    // don't do anything more:
-    return;
-  }
-  Serial.println("card initialized.");
-  */
+USB     Usb;
+HIDBoot<USB_HID_PROTOCOL_KEYBOARD>    HidKeyboard(&Usb);
+KbdRptParser Prs;
 
+void setup() {
+  Usb.Init();
+  Bridge.begin();
+    
   HidKeyboard.SetReportParser(0, &Prs);
   Keyboard.begin();
+
+  FileSystem.begin();
+  ReadTemplateFiles();
 }
 
 void loop()
-{
+{  
   Usb.Task();
 }
 
