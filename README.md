@@ -33,6 +33,8 @@ Here is the hardware list that this project is working with:
   card shield to work)
 * [x] "typing out" the template on valid key combination
 * [ ] Dang sketch needs to wait until the system boots before it does anything!
+* [ ] Logging (when the key combination gets triggered)
+* [ ] Needs to write up some "instructions"
 
 Nice to haves?
 
