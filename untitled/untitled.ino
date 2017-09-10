@@ -2,7 +2,6 @@
 #include <usbhub.h>
 
 #include <Keyboard.h>
-#include <FileIO.h>
 
 // Satisfy the IDE, which needs to see the include statment in the ino too.
 #ifdef dobogusinclude
@@ -143,17 +142,6 @@ String KbdRptParser::GetTemplate(char key)
   return file_path;
 }
 
-String GetPayload(String filename) {
-  File _template = FileSystem.open(filename.c_str(), FILE_READ);
-  String output = "";
-  if (_template) {
-    while (_template.available()) {
-      output += (char)_template.read();
-    }
-    _template.close();
-  }
-  return output;
-}
 
 
 void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key) {
@@ -164,8 +152,8 @@ void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key) {
     int index = int((char)_key_press) - 48;
     String _data = template_data[index];
     Keyboard.releaseAll();
-    String _payload = GetPayload(_data);
-    Keyboard.print(_payload);
+    // String _payload = GetPayload(_data);
+    // Keyboard.print(_payload);
   } else {
     Keyboard.release(_key_press);  
   }
@@ -190,38 +178,15 @@ void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key) {
 }
 
 
-void ReadTemplateFiles() {
-  File dir = FileSystem.open("/mnt/sda1/TEMPLATES", FILE_READ);
-  while(true) {
-    File entry =  dir.openNextFile();
-    if (!entry) {
-      // no more files
-      break;
-    }
-
-    String _filename = entry.name();
-    _filename.replace(".TXT", "");
-    _filename.replace("/mnt/sda1/TEMPLATES/", "");
-    int template_index = _filename.toInt();
-    
-    template_data[template_index] = entry.name();
-    entry.close();
-  }
-}
-
 USB     Usb;
 HIDBoot<USB_HID_PROTOCOL_KEYBOARD>    HidKeyboard(&Usb);
 KbdRptParser Prs;
 
 void setup() {
   Usb.Init();
-  Bridge.begin();
     
   HidKeyboard.SetReportParser(0, &Prs);
   Keyboard.begin();
-
-  FileSystem.begin();
-  ReadTemplateFiles();
 }
 
 void loop()
