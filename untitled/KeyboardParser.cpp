@@ -122,8 +122,10 @@ void KeyboardParser::OnKeyUp(uint8_t mod, uint8_t key) {
     // String _data = template_data[index];
     Keyboard.releaseAll();
     String _payload = _template.data[index];
-    Keyboard.press(KEY_BACKSPACE); Keyboard.release(KEY_BACKSPACE);
-    Keyboard.print(_payload);
+    if (_payload != "") {
+      Keyboard.press(KEY_BACKSPACE); Keyboard.release(KEY_BACKSPACE);
+      Keyboard.print(_payload);
+    }
   } else {
     Keyboard.release(_key_press);  
   }

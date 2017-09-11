@@ -4,8 +4,6 @@
 #include "KeyboardParser.h"
 #include <Keyboard.h>
 
-String template_data[9] = { "", "", "", "", "", "", "", "", "" };
-
 USB     Usb;
 HIDBoot<USB_HID_PROTOCOL_KEYBOARD>    HidKeyboard(&Usb);
 KeyboardParser Prs;
