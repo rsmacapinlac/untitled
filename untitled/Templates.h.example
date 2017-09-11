@@ -1,0 +1,12 @@
+// ensure this library description is only included once
+#ifndef Templates_h
+#define Templates_h
+
+
+class Templates 
+{
+  public:
+    String data[9] = { "Hello world", "This is awesome!", "", "", "", "", "", "", "" };
+};
+
+#endif

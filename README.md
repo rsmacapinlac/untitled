@@ -25,13 +25,34 @@ Here is the hardware list that this project is working with:
 * Arduino ~~Leonardo~~ ~~Yun~~ back to the Leonardo
 * USB host shield
 
+# Setting it up
+
+So, I'm assuming that you bought the hardware and you want to upload this.
+
+Clone this repository to your local computer.
+
+`git clone https://github.com/rsmacapinlac/untitled.git`
+
+Rename the Templates.h.example file to Templates.h
+
+`cp untitled/Templates.h.example untitled/Templates.h`
+
+Use your favorite editor to update the data in the Templates.h file.
+
+`vim untitled/Templates.h`
+
+Compile and upload using the arduino software.
+
+## Setting up the hardware
+
+You need a USB cable to go from the Leonardo's micro USB port to your computer
+and your keyboard should plug into the USB shield's USB.
+
 # Where things are at:
 
 * [x] Keyboard passthrough
 * [x] Trapping predefined key combinations
-* ~~[x] Storing and reading templates from external storage (can't seem to get the SD
-  card shield to work)~~
-* [ ] Way to store the templates
+* [x] A way to store the templates
 * [x] "typing out" the template on valid key combination
 * [ ] Logging (when the key combination gets triggered)
 * [ ] Needs to write up some "instructions"
