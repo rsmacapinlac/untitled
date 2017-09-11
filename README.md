@@ -22,8 +22,8 @@ stick).
 
 Here is the hardware list that this project is working with:
 
-* Arduino ~~Leonardo~~ ~~Yun~~ back to the Leonardo
-* USB host shield
+* Arduino ~~Leonardo~~ ~~Yun~~ back to the [Leonardo](https://store.arduino.cc/usa/arduino-leonardo-with-headers)
+* [USB host shield](https://store.arduino.cc/usa/arduino-usb-host-shield)
 
 # Setting it up
 
@@ -47,6 +47,11 @@ Compile and upload using the arduino software.
 
 You need a USB cable to go from the Leonardo's micro USB port to your computer
 and your keyboard should plug into the USB shield's USB.
+
+# Using it
+
+Once everything has been setup correctly, all you need to do is use ctrl-alt-0
+to ctrl-alt-9 to activate the templates you've setup.
 
 # Where things are at:
 
